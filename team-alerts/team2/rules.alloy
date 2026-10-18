@@ -1,0 +1,14 @@
+mimir.rules.kubernetes "team2_rules" {
+  address   = "http://mimir.example.com"
+
+  tenant_id = "team2"
+
+  sync_interval = "5m"
+
+  rule_selector {
+    match_labels = {
+      "tenant" = "team2",
+    }
+  }
+}
+

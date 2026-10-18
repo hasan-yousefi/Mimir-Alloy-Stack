@@ -1,0 +1,58 @@
+declare "postgresql" {
+  prometheus.exporter.postgres "db_1" {
+    data_source_names = ["postgresql://<USERNAME>:<PASSWORD>>@192.168.1.1:5432/postgres?sslmode=disable"]
+  }
+
+  prometheus.exporter.postgres "db_2" {
+    data_source_names = ["postgresql://<USERNAME>:<PASSWORD>>@192.168.1.1:5432/postgres?sslmode=disable"]
+  }
+
+  discovery.relabel "db_1_labels" {
+    targets = prometheus.exporter.postgres.db_1.targets
+
+    rule {
+      target_label = "env"
+      replacement  = "prod"
+    }
+    rule {
+      target_label = "server"
+      replacement  = "db1"
+    }
+    rule {
+      target_label = "instance"
+      replacement  = "192.168.1.1:5432"
+    }
+    rule {
+      target_label = "team"
+      replacement  = "team1"
+    }
+  }
+
+  discovery.relabel "db_2_labels" {
+    targets = prometheus.exporter.postgres.db_2.targets
+
+    rule {
+      target_label = "env"
+      replacement  = "prod"
+    }
+    rule {
+      target_label = "server"
+      replacement  = "db2"
+    }
+    rule {
+      target_label = "instance"
+      replacement  = "192.168.1.1:5432"
+    }
+    rule {
+      target_label = "team"
+      replacement  = "team1"
+    }
+  }
+
+  export "targets" {
+    value = concat(
+      discovery.relabel.db_1_labels.output,
+      discovery.relabel.db_2_labels.output,
+    )
+  }
+}

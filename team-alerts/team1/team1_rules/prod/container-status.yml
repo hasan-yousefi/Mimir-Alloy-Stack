@@ -1,0 +1,56 @@
+groups:
+  - name: Container
+    rules:
+    - alert: ContainerTerminated
+      expr: |
+        kube_pod_container_status_terminated{clusterenv="prod",team="team1", namespace=~"nginx-private|nginx-public|ceph-csi-rbd|kube-system|kube-public|victoria|kube-node-lease|powerstore"
+        } > 0
+        and on (namespace, pod, container)
+        (
+        kube_pod_container_status_last_terminated_reason{clusterenv="prod",reason!="Completed"} > 0
+        )
+      for: 2m
+      labels:
+        severity: critical
+        team: team1
+        type: prod
+        channel: sms
+      annotations:
+        summary: "Container {{ $labels.container }} in pod {{ $labels.pod }} terminated (Reason: {{ $labels.reason }}) on Cluster {{ $labels.cluster }}"
+        description: "Container {{ $labels.container }} in {{ $labels.namespace }} terminated with reason '{{ $labels.reason }}'. Check logs for exit code and crash details."          
+    - alert: ContainerWaiting
+      expr: |
+        kube_pod_container_status_waiting{clusterenv="prod",team="team1", namespace=~"nginx-private|nginx-public|ceph-csi-rbd|kube-system|kube-public|victoria|kube-node-lease|powerstore"} > 0
+         and on (namespace, pod, container)
+        (kube_pod_container_status_waiting{clusterenv="prod",reason!~"ContainerCreating|PodInitializing"} > 0)
+      for: 5m
+      labels:
+        severity: warning
+        team: team1
+        type: prod
+      annotations:
+        summary: "Container {{ $labels.container }} in pod {{ $labels.pod }} is stuck waiting (Reason: {{ $labels.reason }}) on Cluster {{ $labels.cluster }}"
+        description: "Container has been in 'Waiting' state with reason '{{ $labels.reason }}' for over 5 minutes. Common causes: ImagePullBackOff, ErrImagePull, CrashLoopBackOff, or missing ConfigMaps/Secrets."
+    - alert: ContainerImagePullBlocked
+      expr: |
+         kube_pod_container_status_waiting{clusterenv="prod",team="team1",namespace=~"nginx-private|nginx-public|ceph-csi-rbd|kube-system|kube-public|victoria|kube-node-lease|powerstore",reason=~"ImagePullBackOff|ErrImagePull"} > 0
+      for: 2m
+      labels:
+        severity: critical
+        team: team1
+        type: prod
+      annotations:
+        summary: "Container {{ $labels.container }} in pod {{ $labels.pod }} cannot pull its image (Reason: {{ $labels.reason }}) on Cluster {{ $labels.cluster }}"
+        description: ""
+
+    - alert: ContainerConfigError
+      expr: |
+        kube_pod_container_status_waiting{clusterenv="prod", team="team1",namespace=~"nginx-private|nginx-public|ceph-csi-rbd|kube-system|kube-public|victoria|kube-node-lease|powerstore",reason=~"CreateContainerConfigError|InvalidImageName"} > 0
+      for: 1m
+      labels:
+        severity: warninig
+        team: team1
+        type: prod
+      annotations:
+        summary: "Container {{ $labels.container }} in pod {{ $labels.pod }} has a configuration or image error (Reason: {{ $labels.reason }}) on Cluster {{ $labels.cluster }}"
+        description: "The container is stuck in a `Waiting` state due to a configuration or image name issue. **Current Reason:** {{ $labels.reason }} - `CreateContainerConfigError`: Kubernetes cannot find a required ConfigMap, Secret, or ServiceAccount, or the volume mount is misconfigured. - `InvalidImageName`: The container image name or tag is malformed (e.g., typo in the image URL, missing tag, or invalid registry path)."

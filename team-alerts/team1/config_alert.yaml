@@ -1,0 +1,24 @@
+route:
+  # The root route must have a default fallback receiver
+  receiver: 'webhook_team1'
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+
+  # Child routes go here and CAN have matchers
+  routes:
+    - matchers:
+        - team="team1"
+      receiver: 'webhook_team1'
+      continue: true
+
+receivers:
+  - name: "webhook_team1"
+    slack_configs:
+      - send_resolved: true
+        api_url: "<CHANNEL_URL>"
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+        title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }} {{ .CommonLabels.severity }} {{ end }}] {{ .CommonLabels.alertname }} in {{ .CommonLabels.type }} on {{ .CommonLabels.instance }}'        text: '{{ template "mattermost.message" . }}'
+
+templates:
+  - mattermost.tpl

@@ -1,0 +1,65 @@
+declare "elasticsearch_node1" {
+  prometheus.exporter.elasticsearch "master_1" {
+    address         = "https://192.168.1.1:9200"
+    ssl_skip_verify = true
+
+    basic_auth {
+      username = "elastic"
+      password = "<PASSWORD>"
+    }
+  }
+
+  discovery.relabel "vnk_master_1_labels" {
+    targets = prometheus.exporter.elasticsearch.master_1.targets
+
+    rule {
+      target_label = "env"
+      replacement  = "stage"
+    }
+    rule {
+      target_label = "server"
+      replacement  = "master1"
+    }
+    rule {
+      target_label = "team"
+      replacement  = "team1"
+    }
+  }
+
+  export "targets" {
+    value = discovery.relabel.master_1_labels.output
+  }
+}
+
+declare "elasticsearch_node2" {
+  prometheus.exporter.elasticsearch "master_2" {
+    address         = "https://192.168.1.1:9200"
+    ssl_skip_verify = true
+
+    basic_auth {
+      username = "elastic"
+      password = "<PASSWORD>"
+    }
+  }
+
+  discovery.relabel "master_2_labels" {
+    targets = prometheus.exporter.elasticsearch.master_2.targets
+
+    rule {
+      target_label = "env"
+      replacement  = "prod"
+    }
+    rule {
+      target_label = "server"
+      replacement  = "master2"
+    }
+    rule {
+      target_label = "team"
+      replacement  = "team1"
+    }
+  }
+
+  export "targets" {
+    value = discovery.relabel.master_2_labels.output
+  }
+}

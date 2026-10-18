@@ -1,0 +1,32 @@
+declare "blackbox" {
+  prometheus.exporter.blackbox "team1" {
+    config = `
+modules:
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: []
+      method: GET
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+`
+
+    target {
+      name    = "team1-web"
+      address = "https://web1.example.com"
+      module  = "http_2xx"
+      labels  = {
+        "team"   = "team1",
+        "env"    = "prod",
+        "server" = "web1",
+      }
+    }
+  }
+
+  export "targets" {
+    value = prometheus.exporter.blackbox.team1.targets
+  }
+}

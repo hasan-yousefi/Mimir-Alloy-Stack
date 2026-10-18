@@ -1,0 +1,36 @@
+logging {
+  level  = "warn"
+  format = "json"
+}
+
+
+import.file "team2_team" {
+  filename = "/etc/alloy/configs/team2"
+  detector = "fsnotify"
+}
+
+team2_team.team2_node "exporter" {}
+
+team2_team.mimir "pipeline" {
+  targets = team2_team.team2_node.exporter.targets 
+}
+
+
+import.file "team1_team" {
+  filename = "/etc/alloy/configs/team1"
+  detector = "fsnotify"
+}
+
+team1_team.blackbox "exporter" {}
+team1_team.elasticsearch_node1 "es_master1" {}
+team1_team.elasticsearch_node2 "es_master2" {}
+team1_team.postgresql "pg_dbs" {}
+
+team1_team.mimir "pipeline" {
+  targets = concat(
+    team1_team.blackbox.exporter.targets,
+    team1_team.elasticsearch_node1.es_master1.targets,
+    team1_team.elasticsearch_node2.es_master2.targets,
+    team1_team.postgresql.pg_dbs.targets,
+  )
+}

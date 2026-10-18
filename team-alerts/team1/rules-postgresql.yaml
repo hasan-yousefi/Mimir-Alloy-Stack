@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: postgres-alerts
+  namespace: monitoring
+  labels:
+    tenant: "team1"
+spec:
+  groups:
+    - name: postgresql_instance_alerts
+      rules:
+        - alert: PostgresDown
+          expr: pg_up{env="prod"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            team: team1
+          annotations:
+            summary: "PostgreSQL instance {{ $labels.server }} is down"

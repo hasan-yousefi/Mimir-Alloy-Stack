@@ -1,0 +1,13 @@
+declare "team2_node" {
+  export "targets" {
+    value = [
+      {
+        "__address__" = "192.168.1.2:9100",
+        "team"        = "team2",
+        "env"         = "prod",
+        "job"         = "node_exporter",
+        "instance"    = "instance1",
+      },
+    ]
+  }
+}

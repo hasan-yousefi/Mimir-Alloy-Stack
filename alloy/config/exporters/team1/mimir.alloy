@@ -1,0 +1,30 @@
+declare "mimir" {
+  argument "targets" {
+    optional = false
+  }
+
+  prometheus.scrape "team1_scraper" {
+    targets         = argument.targets.value
+    forward_to      = [prometheus.relabel.team1_filter.receiver]
+    scrape_interval = "15s"
+  }
+
+  prometheus.relabel "team1_filter" {
+    forward_to = [prometheus.remote_write.mimir_team1.receiver]
+
+    rule {
+      source_labels = ["team"]
+      regex         = "team1"
+      action        = "keep"
+    }
+  }
+
+  prometheus.remote_write "mimir_team1" {
+    endpoint {
+      url = "http://mimir-distributor-headless.mimir.svc:8080/api/v1/push"
+      headers = {
+        "X-Scope-OrgID" = "team1",
+      }
+    }
+  }
+}

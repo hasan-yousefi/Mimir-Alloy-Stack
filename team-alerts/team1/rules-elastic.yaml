@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: team1-elasticsearch-alerts
+  namespace: monitoring
+  labels:
+    tenant: "team1"
+spec:
+  groups:
+    - name: elasticsearch.rules
+      rules:
+        - alert: ElasticsearchNodeDown
+          expr: elasticsearch_process_cpu_seconds_total == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Elasticsearch node stopped emitting metrics"
+            description: "Target {{ $labels.instance }} is currently down."
