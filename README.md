@@ -29,4 +29,4 @@ git push -uf origin main
 Hassan Yousefi - [hsn.yousefi158@@gmail.com]
 
 ## License
-For open source projects, say how it is licensed.
+Apache License 2.0
