@@ -1,13 +1,13 @@
 mimir.rules.kubernetes "sysops_rules" {
-  address   = "http://vnk-mimir.abramad.com"
+  address   = "http://mimir.example.com"
 
-  tenant_id = "sysops-k8s"
+  tenant_id = "team1"
 
   sync_interval = "5m"
 
   rule_selector {
     match_labels = {
-      "tenant" = "sysops",
+      "tenant" = "team1",
     }
   }
 }
